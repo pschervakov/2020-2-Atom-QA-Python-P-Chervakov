@@ -8,7 +8,7 @@ class TestPop():
         dic.pop('2')
         assert dic == {'1': 1, '3': 3}
         with pytest.raises(KeyError):
-            assert dic.pop('4')
+            dic.pop('4')
 
     def test_popitem(self):
         dict1 = {i: i for i in range(100)}
