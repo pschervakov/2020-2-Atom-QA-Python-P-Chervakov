@@ -11,11 +11,11 @@ class Test():
     def test_create_segment(self, create_campaign):
         name = create_campaign
         names = self.client.segments_list()
-        assert name in names
+        assert self.client.is_segment(name)
 
     def test_delete_segment(self):
         name = get_random_string(5)
         self.client.create_segment(name)
         self.client.delete_segment(name)
         names = self.client.segments_list()
-        assert name not in names
+        assert not self.client.is_segment(name)

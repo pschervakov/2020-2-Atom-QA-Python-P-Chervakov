@@ -19,6 +19,7 @@ class MyTargetClient:
         self.csrf_token = None
         self.user = user
         self.password = password
+        self.segment_url = 'https://target.my.com/api/v2/remarketing/segments.json'
         self.login()
 
     def _request(self, method, url, status_code=200, headers=None, params=None, data=None, json=True,
@@ -49,16 +50,19 @@ class MyTargetClient:
             'failure': 'https://account.my.com/login/',
         }
         params = {'lang': 'ru', 'nosavelogin': '0'}
-        response = self._request('POST', url, params=params, headers=headers, data=data, json=False)
-        response = self._request('GET', 'https://target.my.com/csrf/', json=False)
-        self.csrf_token = response.headers['set-cookie'].split(';')[0].split('=')[1]
+        response = self._request(
+            'POST', url, params=params, headers=headers, data=data, json=False)
+        response = self._request(
+            'GET', 'https://target.my.com/csrf/', json=False)
+        self.csrf_token = response.headers['set-cookie'].split(';')[
+            0].split('=')[1]
 
     def create_segment(self, name):
         headers = {
             'Referer': 'https://target.my.com/segments/segments_list/new',
             'X-CSRFToken': self.csrf_token,
         }
-        url = 'https://target.my.com/api/v2/remarketing/segments.json?fields=relations__object_type,relations__object_id,relations__params,relations_count,id,name,pass_condition,created,campaign_ids,users,flags'
+        url = self.segment_url
         data = {'name': name, 'pass_condition': 1, 'logicType': 'or',
                 'relations': [
                     {'object_type': 'remarketing_player', 'params': {'type': 'positive', 'left': 365, 'right': 0}}],
@@ -66,12 +70,10 @@ class MyTargetClient:
         self._request('POST', url, json=False, json_data=data, headers=headers)
 
     def segments_list(self):
-        url = 'https://target.my.com/api/v2/remarketing/segments.json?fields=relations__object_type,relations__object_id,relations__params,relations_count,id,name,pass_condition,created,campaign_ids,users,flags&limit=500&_=160287138171'
+        url = self.segment_url
         response = self._request('GET', url)
         seg_names = []
-        for el in response['items']:
-            seg_names.append(el['name'])
-        return seg_names
+        return response['items']
 
     def delete_segment(self, name):
         url = 'https://target.my.com/api/v1/remarketing/mass_action/delete.json'
@@ -84,13 +86,14 @@ class MyTargetClient:
         self._request('POST', json_data=data, headers=headers, url=url)
 
     def get_segment_id_by_name(self, name):
-        url = 'https://target.my.com/api/v2/remarketing/segments.json?fields=relations__object_type,relations__object_id,relations__params,relations_count,id,name,pass_condition,created,campaign_ids,users,flags&limit=500&_=160287138171'
-        response = self._request('GET', url)
-        seg_id = None
-        for el in response['items']:
+        for el in self.segments_list():
             if el['name'] == name:
-                seg_id = el['id']
-        if seg_id:
-            return seg_id
+                return el['id']
         else:
             raise NoSuchSegmentException
+
+    def is_segment(self, name):
+        for el in self.segments_list():
+            if el['name'] == name:
+                return True
+        return False
