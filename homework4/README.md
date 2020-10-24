@@ -7,33 +7,41 @@ with no options returns nothing
              
     --total           total number of requests
 
-	--by-type TYPE    number of TYPE requests    
+    --by-type TYPE    number of TYPE requests    
 
-	--long            10 requests with the highest
-                      value of content-length	    
+    --long            10 requests with the highest
+                      value of content-length
 
-	--long-server     10 requests with the highest
+    --loc-client      10 requests with the most frequent
+                      location among requests with
+                      a client error                    
+
+    --long-server     10 requests with the highest
                       value of content-length among
                       requests with a server error
-			
+            
 
 ### python script
 #### usage: checklogs.py FILE [OPTION]
 
 with no options returns nothing
 
-	--total           total number of requests
+    --total           total number of requests
 
-	--by-type TYPE    number of TYPE requests    
+    --by-type TYPE    number of TYPE requests    
 
-	--long            10 requests with the highest value
-	                  of content-length
+    --long            10 requests with the highest value
+                      of content-length
 
-	--long-server     10 requests with the highest
+    --loc-client      10 requests with the most frequent
+                      location among requests with
+                      a client error                
+
+    --long-server     10 requests with the highest
                       value of content-length among 
                       requests with a server error
-	
-	--json            add results in json format
+    
+    --json            add results in json format
 ___
 
 ### Output
