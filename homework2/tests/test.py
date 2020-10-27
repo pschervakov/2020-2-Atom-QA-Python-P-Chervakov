@@ -20,7 +20,7 @@ class Test(BaseCase):
         str = "Invalid login or password"
         self.login_page.login(mail, password)
         self.base_page.wait().until(lambda d: str in d.page_source)
-        assert str in self.driver.page_source
+
 
     def test_create_segment(self, create_segment):
         segment_page, name = create_segment

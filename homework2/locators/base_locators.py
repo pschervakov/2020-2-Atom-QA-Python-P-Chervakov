@@ -59,9 +59,9 @@ class SegmentPageLocators(BasePageLocators):
         By.XPATH, '//div[@class="input input_create-segment-form"]//input[@class="input__inp js-form-element"]')
 
     CREATE_SEGMENT_FINALLY = (By.XPATH,
-                              '/html/body/div[1]/div[2]/div[1]/div/div[2]/div[2]/div[2]/div/div[1]/div[2]/div/div[2]/div[3]/div/div[4]/button')
+                              '//div[@class="button__text"]')
     CHECKBOX_ALL_SEGMENTS = (By.XPATH,
-                             '/html/body/div[1]/div[2]/div[1]/div/div[2]/div[2]/div[2]/div/div[1]/div[2]/div/div[6]/div/div[1]/div[1]/div/div/div/div[1]/div/div[1]/div[3]/div/input')
+                             '//div[@class="segmentsTable-module-idHeaderCellWrap-2SRKat"]/input')
 
     SEGMENT_ACTIONS = (
         By.XPATH, '//div[@class="segmentsTable-module-selectItem-3thdV7 select-module-item-3gX1Mz"]')
