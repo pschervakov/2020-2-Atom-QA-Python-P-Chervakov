@@ -4,7 +4,7 @@ import threading
 import settings
 
 
-class StubHandleRequests(BaseHTTPRequestHandler):
+class MockHandleRequests(BaseHTTPRequestHandler):
     data = None
     valid_users = {'Ivan', 'Sergey'}
 
@@ -39,12 +39,12 @@ class StubHandleRequests(BaseHTTPRequestHandler):
         self.do_POST()
 
 
-class SimpleHTTPServer:
+class HTTPMockServer:
     def __init__(self, host, port):
         self.host = host
         self.port = port
         self.stop_server = False
-        self.handler = StubHandleRequests
+        self.handler = MockHandleRequests
         self.handler.data = None
         self.server = HTTPServer((self.host, self.port), self.handler)
 
@@ -63,5 +63,6 @@ class SimpleHTTPServer:
 
 
 if __name__ == '__main__':
-    mock = SimpleHTTPServer(host=settings.MOCK_HOST, port=settings.MOCK_PORT)
+    mock = HTTPMockServer(host=settings.MOCK_HOST, port=settings.MOCK_PORT)
     mock.start()
+
