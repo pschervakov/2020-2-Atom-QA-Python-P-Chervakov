@@ -1,0 +1,127 @@
+#!/usr/bin/env python3
+
+
+import argparse
+import json
+from collections import Counter
+
+from sql_logs import LogOrmBuilder
+from sql_orm_client import MysqlOrmConnection
+
+parser = argparse.ArgumentParser(description='log_analysis')
+parser.add_argument('path')
+parser.add_argument('--total', action='store_true')
+parser.add_argument('--by-type', dest='by_type')
+parser.add_argument('--long', action='store_true')
+parser.add_argument('--loc-client', dest='loc_client', action='store_true')
+parser.add_argument('--long-server',
+                    dest='long_server', action='store_true')
+parser.add_argument('--json', action='store_true')
+args = parser.parse_args()
+
+file = open(args.path)
+requests = file.readlines()
+file.close()
+
+URL = 6
+CODE = 8
+CONTENT_LENGTH = 9
+IP = 0
+
+for i in range(0, len(requests)):
+    requests[i] = requests[i].split()
+
+
+def total():
+    return str(len(requests))
+
+
+def requests_by_type(query_type):
+    count = 0
+    for el in requests:
+        if el[5][1:] == query_type:
+            count += 1
+    return query_type, count
+
+
+def longest_requests():
+    longest = sorted(requests, key=lambda x: int(
+        x[9].replace('-', '0')), reverse=True)
+    results = []
+    for i in range(0, 10):
+        results.append((longest[i][URL], longest[i][CODE], longest[i][CONTENT_LENGTH]))
+    return results
+
+
+def client_error_frequent_request():
+    c = Counter()
+    frequent = []
+    results = []
+    for el in requests:
+        if el[8].startswith('4'):
+            frequent.append(el)
+            c[el[6]] += 1
+    top_urls = sorted(dict(c), key=dict(c).get, reverse=True)[:10]
+    urls = top_urls[::]
+    for el in frequent:
+        if el[6] in urls:
+            results.append((el[IP], el[CODE], el[URL]))
+            urls.remove(el[URL])
+    results.sort(key=lambda x: top_urls.index(x[2]))
+    return results
+
+
+def server_error_request():
+    longest = []
+    for el in requests:
+        if el[8].startswith('5'):
+            longest.append(el)
+    longest = sorted(longest, key=lambda x: int(
+        x[9].replace('-', '0')), reverse=True)
+    results = []
+    for i in range(0, 10):
+        results.append((longest[i][IP], longest[i][URL], longest[i][CODE]))
+    return results
+
+
+connection = MysqlOrmConnection(user='root', password='1234', db_name='REQUESTS')
+base = LogOrmBuilder(connection)
+
+result = {}
+if args.total:
+    result['Total'] = total()
+    base.create_table('total')
+    base.add_number_to_total(result['Total'])
+
+if args.by_type:
+    q_type, num = requests_by_type(args.by_type)
+    result['Requests_by_type'] = f'{q_type} : {num}'
+    base.create_table('requests_by_type')
+    base.add_to_requests_by_type(q_type, num)
+if args.long:
+    request_list = longest_requests()
+    base.create_table('longest_requests')
+    result['Longest_requests'] = []
+    for url, code, content_length in request_list:
+        base.add_to_longest_requests(url=url, response_code=code, content_length=content_length)
+        result['Longest_requests'].append(f'{url}, {code}, {content_length}')
+
+if args.long_server:
+    request_list = server_error_request()
+    base.create_table('server_error_longest_requests')
+    result['Server_error_longest_requests'] = []
+    for ip, url, code in request_list:
+        base.add_to_server_requests(url=url, response_code=code, ip=ip)
+        result['Server_error_longest_requests'].append(f'{ip}, {url}, {code}')
+
+if args.loc_client:
+    request_list = client_error_frequent_request()
+    base.create_table('client_error_frequent_request')
+    result['Client_error_frequent_request'] = []
+    for ip, code, url in request_list:
+        base.add_to_client_frequent_requests(url=url, response_code=code, ip=ip)
+        result['Client_error_frequent_request'].append(f'{ip}, {url}, {code}')
+
+if args.json:
+    with open('result.json', 'w') as outfile_json:
+        json.dump(result, outfile_json, indent=4)
