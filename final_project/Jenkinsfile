@@ -1,0 +1,24 @@
+pipeline {
+  agent any
+  stages {
+   stage('System up') {
+      steps {
+        sh 'docker-compose up -d '
+        sh 'start_scripts/start_selenoid.sh'
+      }
+    }
+    stage('Test') {
+      steps {
+        sh 'start_scripts/start_tests.sh'
+      }
+    }
+   }
+   post {
+        always {
+          sh' cp -r  /var/lib/jenkins/workspace/allure-results /var/lib/jenkins/workspace/technoatom-final_master/allure-results'
+          sh 'docker stop selenoid'
+          sh 'docker-compose down'
+          allure report: 'allure_reports', results: [[path: './allure-results']]
+        }
+    }
+  }

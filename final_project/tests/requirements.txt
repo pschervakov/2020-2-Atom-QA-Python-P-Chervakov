@@ -1,0 +1,9 @@
+pytest
+requests
+sqla-wrapper
+SQLAlchemy
+pymysql
+selenium
+webdriver-manager
+allure-pytest
+pytest-xdist

@@ -1,0 +1,36 @@
+version: '2.1'
+networks:
+  default:
+    name: myapp
+services:
+  mysql:
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    image: "percona:latest"
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "-uroot", "-proot", "ping", "-h", "mysql"]
+      timeout: 30s
+      retries: 10
+    volumes:
+      - /home/philip/projects/technoatom-final/start_scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
+  vk:
+    image: "vkimg"
+    ports:
+      - "5050:5050"
+    volumes:
+      - /home/philip/projects/technoatom-final/vk:/vk
+    entrypoint: python /vk/vk_mock.py
+  myapp:
+    image: "myapp"
+    ports:
+      - "8080:8080"
+    volumes:
+      - /home/philip/projects/technoatom-final/conf:/tmp/conf
+    entrypoint: /app/myapp --config=/tmp/conf
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+
